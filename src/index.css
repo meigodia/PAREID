@@ -35,8 +35,8 @@ input[type="range"]::-webkit-slider-thumb:active {
   transform: scale(1.05);
 }
 
-input[type="range"].accent-red-500::-webkit-slider-thumb {
-  background: linear-gradient(135deg, #f87171, #dc2626);
+input[type="range"].accent-orange-500::-webkit-slider-thumb {
+  background: linear-gradient(135deg, #fb923c, #ea580c);
 }
 
 input[type="range"].accent-cyan-500::-webkit-slider-thumb {
@@ -59,8 +59,8 @@ input[type="range"]::-moz-range-thumb {
   transition: transform 0.15s ease;
 }
 
-input[type="range"].accent-red-500::-moz-range-thumb {
-  background: linear-gradient(135deg, #f87171, #dc2626);
+input[type="range"].accent-orange-500::-moz-range-thumb {
+  background: linear-gradient(135deg, #fb923c, #ea580c);
 }
 
 input[type="range"].accent-cyan-500::-moz-range-thumb {
