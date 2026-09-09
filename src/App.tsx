@@ -25,7 +25,7 @@ function App() {
   // Deterioration = blur amount (in em, applied as CSS filter: blur())
   const [deterioration, setDeterioration] = useState(0);
   // Overprint = curve position (alpha threshold via feFuncA tableValues)
-  const [overprint, setOverprint] = useState(50);
+  const [overprint, setOverprint] = useState(1);
 
   const [isAnimating, setIsAnimating] = useState(false);
   const animRef = useRef<number | null>(null);
@@ -46,10 +46,10 @@ function App() {
 
     if (directionRef.current === 'forward') {
       setDeterioration(eased * 100);
-      setOverprint(eased * 100);
+      setOverprint(1 + eased * 99);
     } else {
       setDeterioration((1 - eased) * 100);
-      setOverprint((1 - eased) * 100);
+      setOverprint(1 + (1 - eased) * 99);
     }
 
     if (progress < 1) {
@@ -77,9 +77,8 @@ function App() {
     };
   }, [isAnimating, animate]);
 
-  // Deterioration maps 0-100 → 0em to 0.5em blur
-  // (original tool uses 0.04em default; we go wider for dramatic animation)
-  const blurEm = (deterioration / 100) * 0.5;
+  // Deterioration maps 0-100 → 0em to 2em blur
+  const blurEm = (deterioration / 100) * 2;
   const blurPx = blurEm * 16; // approximate px for display
 
   // Overprint maps 0-100 → curve position for feFuncA
@@ -115,17 +114,18 @@ function App() {
           <div className="relative flex items-center justify-center">
             <svg
               width="100%"
-              viewBox="0 0 372 84"
+              viewBox="-60 -40 492 164"
               xmlns="http://www.w3.org/2000/svg"
-              style={{ maxWidth: '720px' }}
+              style={{ maxWidth: '720px', overflow: 'visible' }}
             >
               <defs>
                 {/*
                   The toneCurve filter: feComponentTransfer with feFuncA
                   Controls alpha threshold to bolden or thin the shape.
                   This is what the "Overprint" slider controls.
+                  Filter region expanded to prevent cropping when boldening.
                 */}
-                <filter id="toneCurve" colorInterpolationFilters="sRGB">
+                <filter id="toneCurve" colorInterpolationFilters="sRGB" x="-50%" y="-50%" width="200%" height="200%">
                   <feComponentTransfer>
                     <feFuncA
                       id="curveA"
@@ -195,7 +195,7 @@ function App() {
           </div>
           <input
             type="range"
-            min="0"
+            min="1"
             max="100"
             step="1"
             value={overprint}
@@ -222,7 +222,7 @@ function App() {
           <button
             onClick={() => {
               setDeterioration(0);
-              setOverprint(50);
+              setOverprint(1);
               setIsAnimating(false);
               directionRef.current = 'forward';
             }}
