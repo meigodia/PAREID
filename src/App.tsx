@@ -22,21 +22,29 @@ function buildTableValues(positionPercent: number): string {
 }
 
 function App() {
-  // Deterioration = blur amount (in em, applied as CSS filter: blur())
-  const [deterioration, setDeterioration] = useState(0);
-  // Overprint = curve position (alpha threshold via feFuncA tableValues)
-  const [overprint, setOverprint] = useState(1);
+  // State 1: Deterioration 0.100em (5% of 2em), Overprint 15%
+  // State 2: Deterioration 2em (100% of 2em), Overprint 85%
+  
+  const STATE1_DETERIORATION = 5; // 0.100em = 5% of 2em max
+  const STATE1_OVERPRINT = 15;
+  const STATE2_DETERIORATION = 100; // 2em = 100% of 2em max
+  const STATE2_OVERPRINT = 85;
 
-  const [isAnimating, setIsAnimating] = useState(false);
+  // Deterioration = blur amount (in em, applied as CSS filter: blur())
+  const [deterioration, setDeterioration] = useState(STATE1_DETERIORATION);
+  // Overprint = curve position (alpha threshold via feFuncA tableValues)
+  const [overprint, setOverprint] = useState(STATE1_OVERPRINT);
+
+  const [isAnimating, setIsAnimating] = useState(true);
   const animRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
   const directionRef = useRef<'forward' | 'backward'>('forward');
 
-  // Animation loop
+  // Animation loop - morphs between State 1 and State 2
   const animate = useCallback((timestamp: number) => {
     if (!startTimeRef.current) startTimeRef.current = timestamp;
     const elapsed = timestamp - startTimeRef.current;
-    const duration = 6000;
+    const duration = 4000; // 4 seconds per transition
     const progress = Math.min(elapsed / duration, 1);
 
     // Ease in-out cubic
@@ -45,11 +53,17 @@ function App() {
       : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
     if (directionRef.current === 'forward') {
-      setDeterioration(eased * 100);
-      setOverprint(1 + eased * 99);
+      // Morph from State 1 to State 2
+      const det = STATE1_DETERIORATION + (STATE2_DETERIORATION - STATE1_DETERIORATION) * eased;
+      const op = STATE1_OVERPRINT + (STATE2_OVERPRINT - STATE1_OVERPRINT) * eased;
+      setDeterioration(det);
+      setOverprint(op);
     } else {
-      setDeterioration((1 - eased) * 100);
-      setOverprint(1 + (1 - eased) * 99);
+      // Morph from State 2 to State 1
+      const det = STATE2_DETERIORATION + (STATE1_DETERIORATION - STATE2_DETERIORATION) * eased;
+      const op = STATE2_OVERPRINT + (STATE1_OVERPRINT - STATE2_OVERPRINT) * eased;
+      setDeterioration(det);
+      setOverprint(op);
     }
 
     if (progress < 1) {
@@ -221,8 +235,8 @@ function App() {
           </button>
           <button
             onClick={() => {
-              setDeterioration(0);
-              setOverprint(1);
+              setDeterioration(STATE1_DETERIORATION);
+              setOverprint(STATE1_OVERPRINT);
               setIsAnimating(false);
               directionRef.current = 'forward';
             }}
@@ -232,17 +246,19 @@ function App() {
           </button>
         </div>
 
-        {/* Technical explanation */}
+        {/* Morph states info */}
         <div className="bg-neutral-900/50 rounded-xl p-4 border border-neutral-800/50 mt-4">
-          <h3 className="text-neutral-400 text-xs font-medium uppercase tracking-wider mb-2">How it works</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-neutral-500">
-            <div>
-              <span className="text-orange-400 font-medium">Deterioration</span>
-              <p className="mt-1">Applies <code className="text-neutral-400">filter: blurXem</code> to the SVG element. The blur softens antialiased edges, which the tone curve then re-thresholds.</p>
+          <h3 className="text-neutral-400 text-xs font-medium uppercase tracking-wider mb-3">Morph Animation</h3>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="bg-neutral-800/50 rounded-lg p-3">
+              <span className="text-emerald-400 font-medium block mb-1">State 1</span>
+              <p className="text-neutral-500">Deterioration: <span className="text-neutral-300 font-mono">0.100em</span></p>
+              <p className="text-neutral-500">Overprint: <span className="text-neutral-300 font-mono">15%</span></p>
             </div>
-            <div>
-              <span className="text-cyan-400 font-medium">Overprint</span>
-              <p className="mt-1">Adjusts the <code className="text-neutral-400">feFuncA tableValues</code> threshold. Moves the alpha cutoff point through the blurred edge ramp, boldening or thinning the result.</p>
+            <div className="bg-neutral-800/50 rounded-lg p-3">
+              <span className="text-purple-400 font-medium block mb-1">State 2</span>
+              <p className="text-neutral-500">Deterioration: <span className="text-neutral-300 font-mono">2em</span></p>
+              <p className="text-neutral-500">Overprint: <span className="text-neutral-300 font-mono">85%</span></p>
             </div>
           </div>
         </div>
